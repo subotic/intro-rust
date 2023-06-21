@@ -17,7 +17,24 @@ use std::{mem::swap, pin::Pin};
 // Although Rust memory management cannot be mastered in any single day workshop, you will learn
 // enough to be able to write safe Rust code, and to understand the error messages that the
 // compiler gives you when you don't.
-
+//
+// Stack
+// - each thread has its own stack
+// - Rust futures are like ZIO fibres
+// - Stack enables to escape the curse of garbage collection without leaking memory.
+// - Java apps would be even slower without the stack
+// - JVM: optimizing GC for throughput or latency
+// - Stack is very fast for deallocating memory, which is simply decrementing the stack pointer.
+// - A function returning, decrements automatically the pointer for the references used only in the function.
+// - Stack is not good for multithreading where memory needs to be shared
+// - Stack not a good fit for collections that change over time. Needs to be fixed known size.
+//
+// Heap
+// - dynamic
+// - unknown size
+// - something that needs to outlive function scope
+// . in the JVM, most lives on the heap
+// - Rust allows, if needed, to be used mostly on the Stack if performance is key
 /// STACK
 ///
 /// The stack is a region of memory allocated to each thread. It is used to store local variables,
@@ -40,10 +57,7 @@ mod stack {
             }
         }
 
-        assert_eq!(
-            grow_stack(10),
-            todo!("What is the size of the stack?") as i32
-        );
+        assert_eq!(grow_stack(10), 10 * 4);
     }
 
     #[test]
@@ -64,11 +78,8 @@ mod stack {
         let p1 = Point { x: 1, y: 2 };
         let p2 = transform_point(p1);
 
-        assert_eq!(
-            0,
-            todo!("How much heap memory is allocated by the above invocation of transform_point()")
-                as i32
-        );
+        // everything is stored on the stack and thus blazing fast!
+        assert_eq!(0, 0,);
     }
 }
 
@@ -88,11 +99,11 @@ mod heap {
                 let x = Box::new(std::mem::size_of::<i32>() as i32);
                 let y = grow_heap(n - 1);
 
-                *x + y
+                *x + y // star - the dereference operator to work with the content of the box (the pointer is pointing to). Box is a dumb pointer type.
             }
         }
 
-        assert_eq!(grow_heap(10), todo!("What is the size of the heap?") as i32);
+        assert_eq!(grow_heap(10), 40);
     }
 
     #[test]
@@ -113,11 +124,7 @@ mod heap {
         let p1 = Point { x: 1, y: 2 };
         let p2 = transform_point(p1);
 
-        assert_eq!(
-            0,
-            todo!("How much heap memory is allocated by the above invocation of transform_point()")
-                as i32
-        );
+        assert_eq!(8, 8);
     }
 
     #[test]
@@ -167,9 +174,9 @@ mod raii {
     fn automatic_freeing_of_memory() {
         #[derive(Debug, PartialEq, Eq)]
         struct Person<'a> {
-            name: &'static str,
+            name: &'static str, // can change name but only readonly access to str
             age: i32,
-            dropped: &'a mut bool,
+            dropped: &'a mut bool, // can change dropped and bool value
         }
 
         let dropped = false;
@@ -199,7 +206,7 @@ mod raii {
         println!("Is detective still alive?");
 
         // Fix the test and try to understand why your change makes it pass.
-        assert_eq!(dropped, false);
+        assert_eq!(dropped, true);
     }
 }
 
@@ -251,11 +258,11 @@ mod safe_pointers {
     fn shared_pointer_read() {
         let x = 1;
 
-        let pointer_x: &i32 = &x;
+        let pointer_x: &i32 = &x; // readonly borrow or shared pointer
 
         let value = *pointer_x;
 
-        assert_eq!(value, todo!("What is the value of x?") as i32);
+        assert_eq!(value, 1);
     }
 
     #[test]
@@ -272,10 +279,7 @@ mod safe_pointers {
 
         let sherlock_pointer = &sherlock;
 
-        assert_eq!(
-            std::mem::size_of::<&Person>(),
-            todo!("What is the size of a pointer?") as usize
-        );
+        assert_eq!(std::mem::size_of::<&Person>(), 8);
     }
 
     #[test]
@@ -301,7 +305,7 @@ mod safe_pointers {
             age: 64,
         };
 
-        let sherlock_pointer = &mut sherlock;
+        let sherlock_pointer = &mut sherlock; // unique pointer, allows modifying value. We can only lend out one unique pointer!!!
 
         sherlock_pointer.age = 65;
 

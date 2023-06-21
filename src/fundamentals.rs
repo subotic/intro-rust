@@ -15,7 +15,8 @@
 /// default, and must be explicitly marked as mutable. Variables can be declared with
 /// the `let` keyword, and can be annotated with a type, or have their type inferred
 /// by the compiler.
-mod variables { // mod - module. a rough equivalent to Scala package.
+mod variables {
+    // mod - module. a rough equivalent to Scala package.
     #[test] // attributes / metadata that is attached to what it precedes immediately (func, mod etc.). Has very powerful support for conditional compilation.
     fn immutable_variable() {
         // todo!("Create a variable called `answer` that is immutable and set it equal to 42 with type i32");
@@ -47,7 +48,8 @@ mod variables { // mod - module. a rough equivalent to Scala package.
 /// characters, strings, byte strings, arrays, tuples, and unit.
 mod literals {
     #[test]
-    fn signed_integer_literal_32() -> () { // test functions are not allowed to have parameters. Functions with no return type, return the unit value (like void)
+    fn signed_integer_literal_32() -> () {
+        // test functions are not allowed to have parameters. Functions with no return type, return the unit value (like void)
         let answer: i32 = 42; // todo!("The answer to the meaning of life, the universe, and everything");
 
         assert_eq!(answer, 42); // semicolon always required if not last statement in a function returning something.
@@ -55,29 +57,28 @@ mod literals {
 
     #[test]
     fn unsigned_integer_literal_32() {
-
-        let answer  = 42u32; // todo!("The answer to the meaning of life, the universe, and everything");
+        let answer = 42u32; // todo!("The answer to the meaning of life, the universe, and everything");
 
         assert_eq!(answer, 42u32);
     }
 
     #[test]
     fn signed_integer_literal_64() {
-        let answer: i64 =  2_147_483_648i64; // todo!("A bigger number than can fit into an i32");
+        let answer: i64 = 2_147_483_648i64; // todo!("A bigger number than can fit into an i32");
 
         assert_eq!(answer, 2_147_483_648i64);
     }
 
     #[test]
     fn unsigned_integer_literal_64() {
-        let answer: u64 =  2_147_483_648u64; // todo!("A bigger number than can fit into an i32");
+        let answer: u64 = 2_147_483_648u64; // todo!("A bigger number than can fit into an i32");
 
         assert_eq!(answer, 2_147_483_648u64);
     }
 
     #[test]
     fn float_literal() {
-        let answer: f64 =  3.14159265358979323846264338327950288f64; // todo!("A number with a fractional component");
+        let answer: f64 = 3.14159265358979323846264338327950288f64; // todo!("A number with a fractional component");
 
         assert_eq!(answer, 3.14159265358979323846264338327950288f64);
     }
@@ -91,7 +92,7 @@ mod literals {
 
     #[test]
     fn character_literal() {
-        let answer: char =  '🦀'; // todo!("A single character");
+        let answer: char = '🦀'; // todo!("A single character");
 
         assert_eq!(answer, '🦀');
     }
@@ -118,14 +119,14 @@ mod literals {
 
     #[test]
     fn array_literal() {
-        let answer: [i32; 3] =  [1, 2, 3]; // todo!("An array of integers");
+        let answer: [i32; 3] = [1, 2, 3]; // todo!("An array of integers");
 
         assert_eq!(answer, [1, 2, 3]);
     }
 
     #[test]
     fn tuple_literal() {
-        let answer: (i32, f64, &str) =  (1, 2.0, "three"); // todo!("A tuple of integers, floats, and strings");
+        let answer: (i32, f64, &str) = (1, 2.0, "three"); // todo!("A tuple of integers, floats, and strings");
 
         assert_eq!(answer, (1, 2.0, "three"));
     }
@@ -133,7 +134,7 @@ mod literals {
     #[test]
     fn unit_literal() {
         let answer: () = (); // todo!("A unit value");
-        // Scala: val unit: Unit = ()
+                             // Scala: val unit: Unit = ()
         assert_eq!(answer, ());
     }
 }
@@ -156,6 +157,7 @@ mod expressions {
 
     #[test]
     fn boolean_operator_expression() {
+        // boolean operator is lazy vs. bitwise operator which is not lazy
         let answer: bool = true && false; // todo!("It's not true!");
 
         assert_eq!(answer, false);
@@ -163,6 +165,7 @@ mod expressions {
 
     #[test]
     fn boolean_bit_operator_expression() {
+        // bitwise operator is not evaluated lazy.
         let answer: bool = true & false; // todo!("It's not true!");
 
         assert_eq!(answer, false);
@@ -170,7 +173,7 @@ mod expressions {
 
     #[test]
     fn if_else_expression() {
-        let answer: i32 = if true { 1 } else { 0}; // todo!("If true, 1, otherwise 0");
+        let answer: i32 = if true { 1 } else { 0 }; // todo!("If true, 1, otherwise 0");
 
         assert_eq!(answer, 1);
     }
@@ -179,6 +182,9 @@ mod expressions {
     fn match_expression() {
         let result: Result<i32, String> = Result::Ok(42);
 
+        // Rust does not have subtyping so the answer needs to have the same type
+        // abstraction without cost and thus Rust does not have something like Any in Scala
+        // as eg. String and i32 have no memory commonality and would need to be added as an abstraction on top.
         let answer: i32 = match result {
             Ok(value) => value,
             Err(_) => 0,
@@ -258,7 +264,7 @@ mod expressions {
 
     #[test]
     fn range_inclusive_expression() {
-        let mut range: RangeInclusive<i32> = 1 ..= 3; // todo!("Create a range from 1 to 3");
+        let mut range: RangeInclusive<i32> = 1..=3; // todo!("Create a range from 1 to 3");
 
         let found = range.find(|&x| x == 3);
 
@@ -267,7 +273,7 @@ mod expressions {
 
     #[test]
     fn range_exclusive_expression() {
-        let mut range: Range<i32> = 1 .. 3; // todo!("Create a range from 1 to 3 (exclusive)");
+        let mut range: Range<i32> = 1..3; // todo!("Create a range from 1 to 3 (exclusive)");
 
         let found = range.find(|&x| x == 3);
 
@@ -317,7 +323,7 @@ mod statements {
 
     #[test]
     fn print_statement() {
-        todo!("Print Hello World! to the console");
+        // todo!("Print Hello World! to the console");
         println!("Hello World!");
 
         assert_eq!((), ());
@@ -351,7 +357,8 @@ mod statements {
 
         println!("The wrong answer is {}", answer);
 
-        if true { // todo!("If true, assign 42 to answer") {
+        if true {
+            // todo!("If true, assign 42 to answer") {
             answer = 42;
         }
 
@@ -365,7 +372,8 @@ mod statements {
 
         println!("The wrong answer is {}", answer);
 
-        if true { // todo!("If true, assign 42 to answer") {
+        if true {
+            // todo!("If true, assign 42 to answer") {
             answer = 42;
         } else {
             answer = -42;
@@ -413,7 +421,7 @@ mod items {
         // Declare a struct item named `Person` that has name and age.
         // The type of name is `&'static str` and the type of age is `i32`.
         struct Person {
-            name:&'static str ,
+            name: &'static str,
             age: i32,
         }
 
@@ -432,7 +440,7 @@ mod items {
             North,
             South,
             East,
-            West
+            West,
         }
 
         let direction: Direction = Direction::North; // todo!("Direction::North");
@@ -467,12 +475,12 @@ mod items {
         // Declare a module item named `math` that has a function named `add` that adds
         // two `i32` values together.
         mod math {
-            pub fn add(x: i32, y:i32) -> i32 {
+            pub fn add(x: i32, y: i32) -> i32 {
                 x + y
             }
         }
 
-        let answer: i32 = math::add(40,2); // todo!("math::add(40, 2)");
+        let answer: i32 = math::add(40, 2); // todo!("math::add(40, 2)");
 
         assert_eq!(answer, 42);
     }
@@ -496,7 +504,7 @@ mod items {
             int: i32,
         }
 
-        let answer: Number = Number{int: 42}; // todo!("Number {{ int: 42 }}");
+        let answer: Number = Number { int: 42 }; // todo!("Number {{ int: 42 }}");
 
         assert_eq!(unsafe { answer.float }, 5.9e-44);
     }

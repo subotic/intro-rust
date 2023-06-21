@@ -135,6 +135,7 @@ mod structs {
     #[test]
     fn struct_copy() {
         // Derive the `Copy` trait for these structs, so that they can be copied.
+        // No one owns ints, so they are copied. Useful for int-like structs.
         #[derive(Copy, Clone, Debug, PartialEq, Eq)]
         struct Person {
             name: &'static str,
@@ -208,7 +209,8 @@ mod structs {
         // on the left-hand side of the `=` sign, and you use `let` to create the
         // variables that are bound to the fields.
 
-        let Person {name, age} = person;
+        // cost free
+        let Person { name, age } = person;
 
         assert_eq!(todo!("name") as &'static str, "John Doe");
         assert_eq!(todo!("age") as u32, 42);
@@ -249,7 +251,11 @@ mod structs {
         };
 
         match person {
-            Person { name: ref n, age: a } => { // if cannot be seen later it is because it was consumed during matching. To prevent, use ref.
+            Person {
+                name: ref n,
+                age: a,
+            } => {
+                // if cannot be seen later it is because it was consumed during matching. To prevent, use ref.
                 println!("Name: {}", n);
                 println!("Age: {}", a);
             }
@@ -286,7 +292,8 @@ mod structs {
             age: u32,
         }
 
-        impl Person { // needs to be in same file as struct
+        impl Person {
+            // needs to be in same file as struct
             // Define a constructor for Person that takes a name and uses a default age of 0.
             fn newborn(name: String) -> Person {
                 // todo!("Construct a Person")
@@ -317,7 +324,7 @@ mod structs {
 
         let mut person = Person::newborn("John Doe".to_owned());
 
-        person.birthday();
+        person.birthday(); // Person::birthday(&mut person)
 
         assert_eq!(person.name(), "John Doe");
         assert_eq!(person.age(), 1);
@@ -339,18 +346,24 @@ mod enums {
     fn basic_enum_example() {
         // Define an enum called `Direction` with the variants `North`, `South`, `East`, and `West`.
         #[derive(Debug, PartialEq, Eq)]
-        enum Direction {}
+        enum Direction {
+            North, // not a type, only a destructor. The OG way of implementing sum types. Sum of products, so no enums allowed.
+            South,
+            East,
+            West,
+        }
 
         // Define a function that takes a `Direction` and returns a `bool` indicating whether the
         // direction is `North`.
         fn is_north(d: Direction) -> bool {
-            todo!("Use equality to compare `d` to `Direction::North`")
+            // todo!("Use equality to compare `d` to `Direction::North`")
+            d == Direction::North // needs derived PartialEq!
         }
 
-        assert_eq!(todo!("is_north(Direction::North)") as bool, true);
-        assert_eq!(todo!("is_north(Direction::South)") as bool, false);
-        assert_eq!(todo!("is_north(Direction::East)") as bool, false);
-        assert_eq!(todo!("is_north(Direction::West)") as bool, false);
+        assert_eq!(is_north(Direction::North), true);
+        assert_eq!(is_north(Direction::South), false);
+        assert_eq!(is_north(Direction::East), false);
+        assert_eq!(is_north(Direction::West), false);
     }
 
     #[test]
@@ -359,26 +372,35 @@ mod enums {
         // each of which has an associated `u32` value, which indicates the number of spaces to move
         // in that direction.
         #[derive(Debug, PartialEq, Eq)]
-        enum Movement {}
+        enum Movement {
+            North(u32),
+            South(u32),
+            East(u32),
+            West(u32),
+        }
 
         // Define a function that takes a `Movement` and returns a `u32` indicating how many spaces
         // the movement should move.
         fn spaces(m: Movement) -> u32 {
             #[allow(unreachable_patterns)]
             match m {
-                _ => todo!("Match on `m` and return the associated value for each variant"),
+                Movement::North(n) => n,
+                Movement::South(n) => n,
+                Movement::East(n) => n,
+                Movement::West(n) => n,
             }
         }
 
-        assert_eq!(todo!("spaces(Movement::North(42))") as u32, 42);
-        assert_eq!(todo!("spaces(Movement::South(42))") as u32, 42);
-        assert_eq!(todo!("spaces(Movement::East(42))") as u32, 42);
-        assert_eq!(todo!("spaces(Movement::West(42))") as u32, 42);
+        assert_eq!(spaces(Movement::North(42)), 42);
+        assert_eq!(spaces(Movement::South(42)), 42);
+        assert_eq!(spaces(Movement::East(42)), 42);
+        assert_eq!(spaces(Movement::West(42)), 42);
     }
 
     #[test]
     fn enum_debug() {
         // Derive the `Debug` trait for this enum, so that it can be printed.
+        #[derive(Debug)]
         enum Direction {
             North,
             South,
@@ -508,7 +530,7 @@ mod enums {
             South,
             East,
             West,
-        }
+        } // data Direction = North | South | East | West // Haskell
 
         let direction = Direction::North;
 
@@ -518,7 +540,15 @@ mod enums {
 
         // Use `if let` to destructure `direction` into `Direction::North`, and return true,
         // otherwise return false.
-        let result: bool = todo!("if let ...");
+        let result: bool = if let Direction::North = direction {
+            true
+        } else {
+            false
+        };
+
+        if Direction::North = direction {
+            println!("North!")
+        }
 
         assert_eq!(result, true);
     }
@@ -535,10 +565,9 @@ mod enums {
 
         // Use let-else to destructure `title` into `Engineer`, extracting out the level or instead
         // calling `panic!` with an error message.
-        let level = if let JobTitle::Engineer { level } = title {
-            level
-        } else {
-            0
+        // not very safe!
+        let JobTitle::Engineer { level } = title else {
+            panic!("Not an engineer!")
         };
 
         assert_eq!(level, 3);
@@ -558,7 +587,10 @@ mod enums {
 
         // Pattern match on the direction enum and return true if it is `Direction::North`, otherwise
         // return false. Experiment with omitting variant cases, or using wildcards.
-        let result: bool = todo!("match direction ...");
+        let result: bool = match direction {
+            Direction::North => true,
+            _ => false,
+        };
 
         assert_eq!(result, true);
     }
@@ -582,10 +614,11 @@ mod enums {
         // Pattern match on the character class and return true if it is a high-powered thief,
         // otherwise return false.
         fn is_high_powered_thief(c: CharacterClass) -> bool {
-            todo!("match c ...")
+            match c {
+                CharacterClass::Thief { power: Power::High } => true,
+                _ => false,
+            }
         }
-
-        let thief = CharacterClass::Thief { power: Power::High };
 
         assert_eq!(is_high_powered_thief(thief), true);
     }
@@ -608,7 +641,10 @@ mod enums {
             // Define a method on Direction that returns a `bool` indicating whether the direction is
             // `North`.
             fn is_north(&self) -> bool {
-                todo!("Match on `self` and return true if it is `Direction::North`")
+                match direction {
+                    Direction::North => true,
+                    _ => false,
+                }
             }
         }
 
@@ -631,13 +667,20 @@ mod generics {
     fn struct_generic() {
         // Define a struct called `Pair` that has two type parameters, `A` and `B`,
         // and two fields, `a` and `b`, of type `A` and `B` respectively.
+        //
+        // no runtime overhead
+        // no boxing
+        // stack friendly
         #[derive(Debug, PartialEq, Eq)]
-        struct Pair {}
+        struct Pair<A, B> {
+            a: A,
+            b: B,
+        }
 
-        // let pair = Pair { a: 42, b: "foo" };
+        let pair = Pair { a: 42, b: "foo" };
 
-        assert_eq!(todo!("pair.a") as i32, 42);
-        assert_eq!(todo!("pair.a") as &str, "foo");
+        assert_eq!(pair.a, 42);
+        assert_eq!(pair.b, "foo");
     }
 
     #[test]
@@ -646,13 +689,16 @@ mod generics {
         // and two variants, `Left` and `Right`, each of which holds a value of type
         // `A` or `B` respectively.
         #[derive(Debug, PartialEq, Eq)]
-        enum Either {}
+        enum Either<A, B> {
+            Left(A),
+            Right(B),
+        }
 
-        // let left = Either::Left(42);
-        // let right = Either::Right("foo");
+        let left = Either::Left(42);
+        let right = Either::Right("foo");
 
-        assert_eq!(todo!("left") as Either, todo!("Either::Left(42)"));
-        assert_eq!(todo!("right") as Either, todo!("Either::Right(\"foo\")"));
+        assert_eq!(left, Either::Left(42));
+        assert_eq!(right, Either::Right("foo"));
     }
 }
 
@@ -661,11 +707,13 @@ mod generics {
 /// The Rust standard library defines a number of data types that are frequently used in Rust
 /// programs. These include `String`, `Vec`, and `HashMap`. In this section, you will learn how
 /// to use these types.
+///
+/// Mutable!!!! vs string slice which is not
 mod standard {
     #[test]
     fn string_type() {
         // Create a `String` from a string literal.
-        let s: String = todo!("\"Hello, world!\"");
+        let s: String = String::from("Hello, world!"); // String::from calls to_owned()
 
         assert_eq!(s, "Hello, world!".to_owned());
     }
@@ -681,7 +729,9 @@ mod standard {
     #[test]
     fn vector_type() {
         // Create a `Vec<i32>` from a list of numbers.
-        let v: Vec<i32> = todo!("vec![1, 2, 3]");
+        //
+        // The goto collection in Rust if it will change, otherwise use array!
+        let v: Vec<i32> = vec![1, 2, 3];
 
         assert_eq!(v, vec![1, 2, 3]);
     }
@@ -701,7 +751,9 @@ mod standard {
 
         // Define the map with a vec of tuples, and then using `into_iter().collect`,
         // convert the vec into a HashMap.
-        let mut map: HashMap<&str, i32> = todo!("vec![...]");
+        let mut map: HashMap<&str, i32> = vec![("foo", 42), ("bar", 43), ("baz", 44)]
+            .into_iter()
+            .collect();
 
         assert_eq!(map.get("foo"), Some(&42));
         assert_eq!(map.get("bar"), Some(&43));
