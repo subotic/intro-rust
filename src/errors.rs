@@ -39,6 +39,8 @@ mod option {
         // The Option type has a method called unwrap that returns the value inside a Some value, or
         // panics if the value is None. This is useful when you know that the value will always be
         // Some, for example, when you are using a hard-coded value.
+        //
+        // don't use
 
         fn divide(numerator: f64, denominator: f64) -> Option<f64> {
             if denominator == 0.0 {
@@ -57,6 +59,8 @@ mod option {
         // The Option type has a method called unwrap_or that returns the value inside a Some
         // value, or returns the specified constant value if the option value is None. This is
         // useful when you want to provide a default value for a value that might be None.
+        //
+        // good to use
 
         fn divide(numerator: f64, denominator: f64) -> Option<f64> {
             if denominator == 0.0 {
@@ -302,7 +306,10 @@ mod result {
 
         fn decode_and_then_divide(numerator: &str, denominator: &str) -> Result<f64, &'static str> {
             // Use the ? operator to either unwrap the Result or return Err:
-            todo!("don't allow division by zero");
+            let n = decode(numerator)?;
+            let d = decode(denominator)?;
+
+            divide(n as f64, d as f64) // error type needs to be the same. a lot of projects use the anyhow lib allowing result with context.
         }
 
         assert_eq!(decode_and_then_divide("4", "2"), Ok(2.0));
@@ -322,14 +329,14 @@ mod panics {
     #[test]
     fn basic_panic() {
         // Use the panic! macro to panic with a message:
-        todo!("panic with a message");
+        panic!("not good!")
     }
 
     #[test]
     fn catch_unwind_panic() {
         let result = std::panic::catch_unwind(|| {
             // Use the panic! macro to panic with a message:
-            todo!("panic with a message");
+            panic!("definitely not good!")
         });
 
         assert!(result.is_err());

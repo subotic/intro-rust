@@ -314,10 +314,7 @@ mod existential {
         }
 
         // Refactor this to use impl DuckLike instead of the trait bound:
-        fn make_duck_quack<T>(duck: T) -> String
-        where
-            T: DuckLike,
-        {
+        fn make_duck_quack(duck: impl DuckLike) -> String {
             duck.quack()
         }
 
@@ -344,13 +341,15 @@ mod existential {
         }
 
         // Refactor this to return an existential DuckLike using `impl`:
-        fn create_some_duck(name: &'static str) -> Duck {
+        fn create_some_dyn(name: &'static str) -> Duck {
             Duck { name }
         }
 
-        assert_eq!(
-            todo!("create_some_duck(\"Donald\").quack()") as String,
-            "Donald is quacking"
-        );
+        fn create_some_duck(name: &'static str) -> impl DuckLike {
+            // use Box dyn only when impl is not working.
+            Duck { name }
+        }
+
+        assert_eq!(create_some_duck("Donald").quack(), "Donald is quacking");
     }
 }

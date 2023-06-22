@@ -22,7 +22,7 @@ mod threads {
 
     #[test]
     fn spawn_join_thread() {
-        let thread: JoinHandle<i32> = todo!("Spawn a thread that returns 42");
+        let thread: JoinHandle<i32> = ;
 
         let result = thread.join().unwrap();
 

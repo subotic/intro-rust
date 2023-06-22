@@ -170,18 +170,22 @@ mod raii {
     /// and the resources they own are released. This is the basis of Rust's memory safety.
     ///
     /// Rust provides a middle-ground between manual memory management and garbage collection.
+    ///
+    /// No dangling pointers in Rust. References (pointer in GC languages) point to data, that in a
+    /// GC language will not be garbage collected as long as the reference is in use.
+    /// In non GC languages like C or C++, a dangling pointer can point to a memory location which
+    /// is reused. In Rust this is not possible if using safe Rust.
     #[test]
     fn automatic_freeing_of_memory() {
         #[derive(Debug, PartialEq, Eq)]
         struct Person<'a> {
             name: &'static str, // can change name but only readonly access to str
             age: i32,
-            dropped: &'a mut bool, // can change dropped and bool value
+            dropped: &'a mut bool, // can change dropped and bool value // needs a supplied lifetime.
         }
 
-        let dropped = false;
-
         impl Drop for Person<'_> {
+            // dropping in Rust is like finalization in ZIO
             fn drop(&mut self) {
                 (*self.dropped) = true;
 
@@ -192,6 +196,7 @@ mod raii {
         let mut dropped = false;
 
         let detective = Person {
+            // variable set to the value (Person) and is the current owner.
             name: "Sherlock Holmes",
             age: 64,
             dropped: &mut dropped,
@@ -199,7 +204,7 @@ mod raii {
 
         fn relocate(p: Person) -> () {
             println!("Relocating {:?} to another country", p);
-        }
+        } // calling relocate, the value Person is moved, i.e., the owner changed to the p variable and thus the function scope.
 
         relocate(detective);
 
@@ -305,7 +310,7 @@ mod safe_pointers {
             age: 64,
         };
 
-        let sherlock_pointer = &mut sherlock; // unique pointer, allows modifying value. We can only lend out one unique pointer!!!
+        let sherlock_pointer = &mut sherlock; // unique pointer, allows modifying value. We can only borrow out one unique pointer!!!
 
         sherlock_pointer.age = 65;
 
@@ -800,7 +805,7 @@ mod lifetimes {
         /// called `'a`, and ensure the code still compiles and passes.
         #[derive(Debug, PartialEq)]
         struct Person {
-            name: &'static str,
+            name: &'static str, // static lifetime means as long as the program is running
             age: i32,
         }
 
